@@ -2,21 +2,36 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 
 from app.modules.pii.pii_service import PIIService
-from app.modules.pii.pii_schema import PiiScanSchema
 
 
 pii_bp = Blueprint("pii", __name__)
-
-schema = PiiScanSchema()
 
 
 @pii_bp.route("/scan", methods=["POST"])
 @jwt_required()
 def scan():
 
-    data = schema.load(request.json)
+    print(request.files)
+    if "file" not in request.files:
+        return {"msg": "File is required"}, 400
 
-    result = PIIService.scan_text(data["text"])
+    file = request.files["file"]
+
+    if file.filename == "":
+        return {"msg": "Empty filename"}, 400
+
+    if not file.filename.endswith(".txt"):
+        return {"msg": "Only .txt files are allowed"}, 400
+
+    if file.mimetype != "text/plain":
+        return {"msg": "Only text/plain files are allowed"}, 400
+
+    try:
+        text = file.read().decode("utf-8")
+    except UnicodeDecodeError:
+        return {"msg": "File must be valid UTF-8 text"}, 400
+
+    result = PIIService.scan_text(text)
 
     return result, 200
 
@@ -31,6 +46,7 @@ def get_scans():
     result = PIIService.get_user_scans(page, per_page)
 
     return result, 200
+
 
 @pii_bp.route("/scans/<int:scan_id>/results", methods=["GET"])
 @jwt_required()
