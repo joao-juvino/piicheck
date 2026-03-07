@@ -11,6 +11,8 @@ flask-migrate = "*"
 marshmallow = "*"
 python-dotenv = "*"
 flask-limiter = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 pytest = "*"

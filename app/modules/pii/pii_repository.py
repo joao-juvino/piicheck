@@ -10,11 +10,13 @@ class PiiRepository:
 
         scan = PiiScan(
             user_id=user_id,
-            input_text=text
+            input_text=text,
+            status="queued"
         )
 
         db.session.add(scan)
         db.session.flush()
+        db.session.commit()
 
         return scan
 

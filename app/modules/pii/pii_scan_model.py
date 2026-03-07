@@ -27,6 +27,11 @@ class PiiScan(db.Model):
         index=True
     )
 
+    status = db.Column(
+        db.String(20),
+        default="pending"
+    )
+
     detections = db.relationship(
         "PiiDetection",
         backref="scan",

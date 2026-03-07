@@ -1,3 +1,5 @@
+from app.modules.pii.pii_scan_model import PiiScan
+from app.modules.pii.pii_tasks import process_scan
 from flask_jwt_extended import get_jwt_identity
 
 from app.modules.pii.pii_detector import PIIDetector
@@ -25,6 +27,14 @@ class PIIService:
             "scan_id": scan.id,
             "detections": detections
         }
+
+
+    @staticmethod
+    def enqueue_scan(text):
+        user_id = get_jwt_identity()
+        scan = PiiRepository.create_scan(user_id, text)
+        process_scan.delay(scan.id, text)
+        return {"scan_id": scan.id, "status": "queued"}
     
     
     @staticmethod

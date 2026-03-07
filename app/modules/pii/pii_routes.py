@@ -11,7 +11,6 @@ pii_bp = Blueprint("pii", __name__)
 @jwt_required()
 def scan():
 
-    print(request.files)
     if "file" not in request.files:
         return {"msg": "File is required"}, 400
 
@@ -31,9 +30,9 @@ def scan():
     except UnicodeDecodeError:
         return {"msg": "File must be valid UTF-8 text"}, 400
 
-    result = PIIService.scan_text(text)
+    result = PIIService.enqueue_scan(text)
 
-    return result, 200
+    return result, 202
 
 
 @pii_bp.route("/scans", methods=["GET"])
