@@ -1,11 +1,20 @@
-run:
-	pipenv run python run.py
+up:
+	docker compose up --build
 
-migrate:
-	pipenv run flask db migrate
+down:
+	docker compose down
 
-upgrade:
-	pipenv run flask db upgrade
+logs:
+	docker compose logs -f
 
-init-db:
-	pipenv run flask db init
+worker:
+	docker compose logs -f worker
+
+api:
+	docker compose logs -f api
+
+redis:
+	docker compose logs -f redis
+
+shell:
+	docker compose exec api bash
