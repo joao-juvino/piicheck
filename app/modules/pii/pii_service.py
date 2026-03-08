@@ -1,10 +1,9 @@
-from app.modules.pii.pii_scan_model import PiiScan
-from app.modules.pii.pii_tasks import process_scan
 from flask_jwt_extended import get_jwt_identity
 
+from app.extensions.extensions import db
 from app.modules.pii.pii_detector import PIIDetector
 from app.modules.pii.pii_repository import PiiRepository
-from app.extensions.extensions import db
+from app.modules.pii.pii_tasks import process_scan
 
 
 class PIIService:

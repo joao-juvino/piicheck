@@ -3,7 +3,6 @@ from flask_jwt_extended import jwt_required
 
 from app.modules.pii.pii_service import PIIService
 
-
 pii_bp = Blueprint("pii", __name__)
 
 

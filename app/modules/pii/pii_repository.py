@@ -1,6 +1,6 @@
 from app.extensions.extensions import db
-from app.modules.pii.pii_scan_model import PiiScan
 from app.modules.pii.pii_detection_model import PiiDetection
+from app.modules.pii.pii_scan_model import PiiScan
 
 
 class PiiRepository:

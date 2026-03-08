@@ -18,3 +18,6 @@ redis:
 
 shell:
 	docker compose exec api bash
+
+lint:
+	ruff check . --fix

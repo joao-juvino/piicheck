@@ -4,8 +4,10 @@ celery = Celery(__name__)
 
 def init_celery(app):
 
-    broker = app.config.get("CELERY_BROKER_URL") or app.config.get("broker_url")
-    backend = app.config.get("CELERY_RESULT_BACKEND") or app.config.get("result_backend")
+    broker = (app.config.get("CELERY_BROKER_URL") 
+              or app.config.get("broker_url"))
+    backend = (app.config.get("CELERY_RESULT_BACKEND") 
+               or app.config.get("result_backend"))
 
     if broker:
         celery.conf.broker_url = broker

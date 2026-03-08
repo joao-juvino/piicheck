@@ -1,5 +1,5 @@
-from app.modules.auth.auth_model import User
 from app.extensions.extensions import db
+from app.modules.auth.auth_model import User
 from app.modules.auth.token_blocklist_model import TokenBlocklist
 
 

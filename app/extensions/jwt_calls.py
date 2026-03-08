@@ -1,4 +1,3 @@
-from flask_jwt_extended import get_jwt
 from app.extensions.extensions import jwt
 from app.modules.auth.token_blocklist_model import TokenBlocklist
 

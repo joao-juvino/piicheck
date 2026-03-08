@@ -4,7 +4,6 @@ from app.modules.pii.pii_detector import PIIDetector
 from app.modules.pii.pii_repository import PiiRepository
 from app.modules.pii.pii_scan_model import PiiScan
 
-from app.extensions.celery_app import celery
 
 @celery.task
 def process_scan(scan_id, text):

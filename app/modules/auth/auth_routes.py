@@ -1,12 +1,11 @@
 from xml.dom import ValidationErr
 
-from flask import Blueprint, request, jsonify
-from app.modules.auth.auth_schema import LoginSchema, RegisterSchema
-from app.modules.auth.auth_service import AuthService
-
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.extensions.extensions import limiter
+from app.modules.auth.auth_schema import LoginSchema, RegisterSchema
+from app.modules.auth.auth_service import AuthService
 
 auth_bp = Blueprint("auth", __name__)
 
