@@ -41,7 +41,6 @@ class ScanResource(MethodView):
         - scan_id
         - status (queued)
         """
-        
         if "file" not in request.files:
             return {"msg": "File is required"}, 400
 

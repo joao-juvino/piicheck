@@ -32,3 +32,8 @@ class Config:
             }
         }
     }
+
+class TestConfig:
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    JWT_SECRET_KEY = "a_very_long_secret_key_for_testing_purposes"

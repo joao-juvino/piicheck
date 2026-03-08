@@ -6,8 +6,13 @@ from app.extensions.celery_app import init_celery
 from app.extensions.extensions import db, jwt, limiter, migrate
 
 
-def create_app():
+def create_app(config_name=None):
     app = Flask(__name__)
+
+    if config_name == "test":
+        app.config["TESTING"] = True
+        app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+        app.config["JWT_SECRET_KEY"] = "a_very_long_secret_key_for_testing_purposes"
 
     app.config.from_object(Config)
 
