@@ -1,54 +1,73 @@
-from flask import Blueprint, request
+# app/modules/pii/pii_routes.py
+from flask.views import MethodView
+from flask import request
+from flask_smorest import Blueprint
 from flask_jwt_extended import jwt_required
 
 from app.modules.pii.pii_service import PIIService
 
-pii_bp = Blueprint("pii", __name__)
+pii_blp = Blueprint(
+    "pii",
+    "pii",
+    url_prefix="/pii",
+    description="PII scanning endpoints"
+)
+
+@pii_blp.route("/scan")
+class ScanResource(MethodView):
+
+    @jwt_required()
+    def post(self):
+        """
+        Upload a plain .txt file to enqueue a scan.
+        This endpoint accepts multipart/form-data with a 'file' field.
+        """
+        if "file" not in request.files:
+            return {"msg": "File is required"}, 400
+
+        file = request.files["file"]
+
+        if file.filename == "":
+            return {"msg": "Empty filename"}, 400
+
+        if not file.filename.lower().endswith(".txt"):
+            return {"msg": "Only .txt files are allowed"}, 400
+
+        if file.mimetype != "text/plain":
+            return {"msg": "Only text/plain files are allowed"}, 400
+
+        try:
+            text = file.read().decode("utf-8")
+        except UnicodeDecodeError:
+            return {"msg": "File must be valid UTF-8 text"}, 400
+
+        result = PIIService.enqueue_scan(text)
+        return result, 202
 
 
-@pii_bp.route("/scan", methods=["POST"])
-@jwt_required()
-def scan():
+@pii_blp.route("/scans")
+class ScansListResource(MethodView):
 
-    if "file" not in request.files:
-        return {"msg": "File is required"}, 400
-
-    file = request.files["file"]
-
-    if file.filename == "":
-        return {"msg": "Empty filename"}, 400
-
-    if not file.filename.endswith(".txt"):
-        return {"msg": "Only .txt files are allowed"}, 400
-
-    if file.mimetype != "text/plain":
-        return {"msg": "Only text/plain files are allowed"}, 400
-
-    try:
-        text = file.read().decode("utf-8")
-    except UnicodeDecodeError:
-        return {"msg": "File must be valid UTF-8 text"}, 400
-
-    result = PIIService.enqueue_scan(text)
-
-    return result, 202
+    @jwt_required()
+    @pii_blp.response(200)
+    def get(self):
+        """
+        List scans of the authenticated user with pagination:
+        query params: ?page=1&per_page=10
+        """
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 10, type=int)
+        result = PIIService.get_user_scans(page, per_page)
+        return result
 
 
-@pii_bp.route("/scans", methods=["GET"])
-@jwt_required()
-def get_scans():
+@pii_blp.route("/scans/<int:scan_id>/results")
+class ScanResultsResource(MethodView):
 
-    page = request.args.get("page", 1, type=int)
-    per_page = request.args.get("per_page", 10, type=int)
-
-    result = PIIService.get_user_scans(page, per_page)
-
-    return result, 200
-
-
-@pii_bp.route("/scans/<int:scan_id>/results", methods=["GET"])
-@jwt_required()
-def get_scan_results(scan_id):
-
-    return PIIService.get_scan_results(scan_id)
-
+    @jwt_required()
+    @pii_blp.response(200)
+    def get(self, scan_id):
+        """
+        Return detections for a single scan (checks ownership).
+        """
+        return PIIService.get_scan_results(scan_id)

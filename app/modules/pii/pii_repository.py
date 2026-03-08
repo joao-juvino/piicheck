@@ -33,6 +33,7 @@ class PiiRepository:
         )
 
         db.session.add(detection)
+        db.session.commit()
 
     @staticmethod
     def get_user_scans(user_id, page=1, per_page=10):

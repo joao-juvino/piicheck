@@ -1,6 +1,9 @@
 up:
 	docker compose up --build
 
+fast-up:
+	docker compose up
+
 down:
 	docker compose down
 

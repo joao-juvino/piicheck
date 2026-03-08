@@ -13,6 +13,7 @@ python-dotenv = "*"
 flask-limiter = "*"
 celery = "*"
 redis = "*"
+flask-smorest = "*"
 
 [dev-packages]
 pytest = "*"

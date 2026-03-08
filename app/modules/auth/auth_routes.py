@@ -1,84 +1,83 @@
-from xml.dom import ValidationErr
-
-from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity, jwt_required
+# app/modules/auth/auth_routes.py
+from flask.views import MethodView
+from flask import jsonify
+from flask_smorest import Blueprint
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions.extensions import limiter
-from app.modules.auth.auth_schema import LoginSchema, RegisterSchema
+from app.modules.auth.auth_schema import RegisterSchema, LoginSchema
 from app.modules.auth.auth_service import AuthService
 
-auth_bp = Blueprint("auth", __name__)
+auth_blp = Blueprint(
+    "auth",
+    "auth",
+    url_prefix="/auth",
+    description="Authentication endpoints"
+)
 
-register_schema = RegisterSchema()
-login_schema = LoginSchema()
+@auth_blp.route("/register")
+class RegisterResource(MethodView):
 
-@auth_bp.route("/register", methods=["POST"])
-def register():
+    @auth_blp.arguments(RegisterSchema)
+    @auth_blp.response(201)
+    def post(self, data):
+        """
+        Register a new user.
+        Request validated by RegisterSchema.
+        """
+        user = AuthService.register(data["email"], data["password"])
 
-    try:
-        data = register_schema.load(request.json)
-
-    except ValidationErr as err:
-        return jsonify(err.messages), 400
-
-    user = AuthService.register(
-        data["email"],
-        data["password"]
-    )
-
-    return jsonify({
-        "id": user.id,
-        "email": user.email
-    })
+        return {"id": user.id, "email": user.email}
 
 
-@auth_bp.route("/login", methods=["POST"])
-@limiter.limit("5 per minute")
-def login():
+@auth_blp.route("/login")
+class LoginResource(MethodView):
 
-    try:
-        data = login_schema.load(request.json)
-
-    except ValidationErr as err:
-        return jsonify(err.messages), 400
-
-    token, refresh_token = AuthService.login(
-        data["email"],
-        data["password"]
-    )
-
-    return jsonify({
-        "access_token": token,
-        "refresh_token": refresh_token
-    })
+    @limiter.limit("5 per minute")
+    @auth_blp.arguments(LoginSchema)
+    @auth_blp.response(200)
+    def post(self, data):
+        """
+        Login -> returns access_token and refresh_token.
+        """
+        access_token, refresh_token = AuthService.login(data["email"], data["password"])
+        return {"access_token": access_token, "refresh_token": refresh_token}
 
 
-@auth_bp.route("/refresh", methods=["POST"])
-@jwt_required(refresh=True)
-def refresh():
+@auth_blp.route("/refresh")
+class RefreshResource(MethodView):
 
-    user_id = get_jwt_identity()
+    @jwt_required(refresh=True)
+    @auth_blp.response(200)
+    def post(self):
+        """
+        Use refresh token to get a new access token.
+        """
+        user_id = get_jwt_identity()
+        access_token = AuthService.refresh(user_id)
+        return {"access_token": access_token}
 
-    access_token = AuthService.refresh(user_id)
 
-    return jsonify({
-        "access_token": access_token
-    })
+@auth_blp.route("/me")
+class MeResource(MethodView):
+
+    @jwt_required()
+    @auth_blp.response(200)
+    def get(self):
+        """
+        Return authenticated user id (example).
+        """
+        user_id = get_jwt_identity()
+        return {"user_id": user_id}
 
 
-@auth_bp.route("/me", methods=["GET"])
-@jwt_required()
-def me():
+@auth_blp.route("/logout")
+class LogoutResource(MethodView):
 
-    user_id = get_jwt_identity()
-
-    return jsonify({
-        "user_id": user_id
-    })
-
-@auth_bp.route("/logout", methods=["POST"])
-@jwt_required()
-def logout():
-
-    return AuthService.logout(), 200
-
+    @jwt_required()
+    @auth_blp.response(200)
+    def post(self):
+        """
+        Revoke current access token (logout).
+        """
+        return AuthService.logout()
