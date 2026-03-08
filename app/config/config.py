@@ -1,7 +1,5 @@
 import os
 
-import app
-
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
@@ -22,3 +20,15 @@ class Config:
     OPENAPI_URL_PREFIX = "/docs"
     OPENAPI_SWAGGER_UI_PATH = "/swagger"
     OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+    API_SPEC_OPTIONS = {
+        "security": [{"BearerAuth": []}],
+        "components": {
+            "securitySchemes": {
+                "BearerAuth": {
+                    "type": "http",
+                    "scheme": "bearer",
+                    "bearerFormat": "JWT"
+                }
+            }
+        }
+    }

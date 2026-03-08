@@ -171,6 +171,111 @@ celery -A app.celery_worker:celery worker --loglevel=info
 
 ---
 
+# API Documentation (Swagger)
+
+A API possui documentação interativa gerada automaticamente utilizando:
+
+* OpenAPI
+* Swagger UI
+* flask-smorest
+
+Essa documentação permite:
+
+* visualizar todos os endpoints
+* testar requisições diretamente pelo navegador
+* enviar arquivos `.txt` para análise
+* autenticar usando JWT
+* visualizar schemas de request/response
+
+---
+
+# Acessando o Swagger
+
+Após iniciar a aplicação, a documentação estará disponível em:
+
+```id="sl7h9n"
+http://localhost:5000/docs/swagger
+```
+
+Interface exemplo:
+
+```id="sk8tb4"
+Swagger UI
+ ├── Auth
+ │   ├── POST /auth/register
+ │   ├── POST /auth/login
+ │   ├── POST /auth/refresh
+ │   ├── GET  /auth/me
+ │   └── POST /auth/logout
+ │
+ └── PII
+     ├── POST /pii/scan
+     ├── GET  /pii/scans
+     └── GET  /pii/scans/{scan_id}/results
+```
+
+---
+
+# Autenticação no Swagger
+
+Alguns endpoints são protegidos com JWT usando:
+
+* Flask-JWT-Extended
+
+Para acessar rotas protegidas:
+
+### 1 — Fazer login
+
+Execute:
+
+```
+POST /auth/login
+```
+
+Exemplo de request:
+
+```json id="z9yo6d"
+{
+  "email": "user@email.com",
+  "password": "123456"
+}
+```
+
+Resposta:
+
+```json id="pnvxfm"
+{
+  "access_token": "JWT_TOKEN",
+  "refresh_token": "JWT_REFRESH_TOKEN"
+}
+```
+
+---
+
+### 2 — Autorizar no Swagger
+
+Clique no botão:
+
+```
+Authorize
+```
+
+E informe:
+
+```id="kjy1z7"
+Bearer SEU_ACCESS_TOKEN
+```
+
+Exemplo:
+
+```id="e3yzpx"
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Após isso, todas as rotas protegidas poderão ser utilizadas diretamente no Swagger.
+
+---
+
 # 2 — Arquitetura
 
 ## Processamento assíncrono

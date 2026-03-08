@@ -1,11 +1,17 @@
-# app/modules/auth/auth_routes.py
 from flask.views import MethodView
-from flask import jsonify
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_smorest import Blueprint
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.extensions.extensions import limiter
-from app.modules.auth.auth_schema import RegisterSchema, LoginSchema
+from app.modules.auth.auth_schema import (
+    AccessTokenSchema,
+    LoginResponseSchema,
+    LoginSchema,
+    LogoutResponseSchema,
+    MeResponseSchema,
+    RegisterResponseSchema,
+    RegisterSchema,
+)
 from app.modules.auth.auth_service import AuthService
 
 auth_blp = Blueprint(
@@ -15,16 +21,19 @@ auth_blp = Blueprint(
     description="Authentication endpoints"
 )
 
+
 @auth_blp.route("/register")
 class RegisterResource(MethodView):
 
     @auth_blp.arguments(RegisterSchema)
-    @auth_blp.response(201)
+    @auth_blp.response(201, RegisterResponseSchema)
     def post(self, data):
         """
         Register a new user.
-        Request validated by RegisterSchema.
+
+        Creates a user account using email and password.
         """
+
         user = AuthService.register(data["email"], data["password"])
 
         return {"id": user.id, "email": user.email}
@@ -35,26 +44,41 @@ class LoginResource(MethodView):
 
     @limiter.limit("5 per minute")
     @auth_blp.arguments(LoginSchema)
-    @auth_blp.response(200)
+    @auth_blp.response(200, LoginResponseSchema)
     def post(self, data):
         """
-        Login -> returns access_token and refresh_token.
+        Authenticate user.
+
+        Returns:
+        - access_token
+        - refresh_token
         """
-        access_token, refresh_token = AuthService.login(data["email"], data["password"])
-        return {"access_token": access_token, "refresh_token": refresh_token}
+
+        access_token, refresh_token = AuthService.login(
+            data["email"],
+            data["password"]
+        )
+
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
 
 
 @auth_blp.route("/refresh")
 class RefreshResource(MethodView):
 
     @jwt_required(refresh=True)
-    @auth_blp.response(200)
+    @auth_blp.response(200, AccessTokenSchema)
     def post(self):
         """
-        Use refresh token to get a new access token.
+        Generate a new access token using a refresh token.
         """
+
         user_id = get_jwt_identity()
+
         access_token = AuthService.refresh(user_id)
+
         return {"access_token": access_token}
 
 
@@ -62,12 +86,14 @@ class RefreshResource(MethodView):
 class MeResource(MethodView):
 
     @jwt_required()
-    @auth_blp.response(200)
+    @auth_blp.response(200, MeResponseSchema)
     def get(self):
         """
-        Return authenticated user id (example).
+        Return information about the authenticated user.
         """
+
         user_id = get_jwt_identity()
+
         return {"user_id": user_id}
 
 
@@ -75,9 +101,10 @@ class MeResource(MethodView):
 class LogoutResource(MethodView):
 
     @jwt_required()
-    @auth_blp.response(200)
+    @auth_blp.response(200, LogoutResponseSchema)
     def post(self):
         """
-        Revoke current access token (logout).
+        Logout user by revoking the current token.
         """
+
         return AuthService.logout()

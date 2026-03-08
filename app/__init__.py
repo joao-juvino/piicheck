@@ -5,6 +5,7 @@ from app.config.config import Config
 from app.extensions.celery_app import init_celery
 from app.extensions.extensions import db, jwt, limiter, migrate
 
+
 def create_app():
     app = Flask(__name__)
 
